@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: a90efc83f577c1b4d9493d3ba62fae05
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - explosionPrefab: {instanceID: 0}
+  - sound: {instanceID: 0}
+  - greatfire: {instanceID: 0}
+  - ice: {instanceID: 0}
+  - steam: {fileID: 5642766282230003982, guid: b5c8ca7ed10b61e499cce8ec3b6e2e4c, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
