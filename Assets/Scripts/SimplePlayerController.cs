@@ -34,6 +34,7 @@ namespace ClearSky
         public float fire_mana;
         public float water_mana;
         public float wind_mana;
+        private Vector2 startposition;
 
 
         // Start is called before the first frame update
@@ -41,6 +42,7 @@ namespace ClearSky
         {
             rb = GetComponent<Rigidbody2D>();
             anim = GetComponent<Animator>();
+            startposition = transform.position;
         }
 
         private void Update()
@@ -51,8 +53,9 @@ namespace ClearSky
                 //Hurt();
                 //Die();
                 Attack();
-                //Jump();
+                Jump();
                 Run();
+                standonground();
 
             }
         }
@@ -60,6 +63,15 @@ namespace ClearSky
         //{
         //    anim.SetBool("isJump", false);
         //}
+
+        void standonground()
+        {
+            if (transform.position.y <= startposition.y && anim.GetBool("isJump"))
+            {
+                isJumping = false;
+                anim.SetBool("isJump", false);
+            }
+        }
 
 
         void Run()

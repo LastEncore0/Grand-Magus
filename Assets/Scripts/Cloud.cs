@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst.CompilerServices;
@@ -34,10 +35,15 @@ public class Cloud : MonoBehaviour
         }
     }
 
-    void DestroyBelowEnemies()
+    IEnumerator DestroyBelowEnemies(float damagedelay)
     {
+        yield return new WaitForSeconds(damagedelay); // 添加延迟
         Vector2 center = new Vector2(transform.position.x, transform.position.y - 10f);
-        Collider2D[] enemies = Physics2D.OverlapCircleAll(center, 4.0f, enemyLayer);
+        if (!aud.isPlaying) // 如果当前没有音频正在播放
+        {
+            aud.PlayOneShot(sound);
+        }
+        Collider2D[] enemies = Physics2D.OverlapCircleAll(center, 3.0f, enemyLayer);
         Debug.Log("OverlapCircle returned " + enemies.Length + " colliders.");
         Instantiate(thunder, center, Quaternion.identity);
         if (lighting != null)
@@ -58,6 +64,9 @@ public class Cloud : MonoBehaviour
                 Enemy.damaged(damage_value);
             }
         }
+        spriteRenderer.color = Color.white; // 再次变白
+        hitCount = 0; // 重置计数器
+        
     }
 
 
@@ -71,29 +80,26 @@ public class Cloud : MonoBehaviour
     {
         Vector2 center = new Vector2(transform.position.x, transform.position.y - 10f);
         Gizmos.color = Color.red; // 设置Gizmos的颜色
-        Gizmos.DrawWireSphere(center, 6.0f);
+        Gizmos.DrawWireSphere(center, 3.0f);
     }
     // Update is called once per frame
     void Update()
     {
         Vector2 center = new Vector2(transform.position.x, transform.position.y - 10f);
-        Collider2D[] enemies = Physics2D.OverlapCircleAll(center, 3.0f, enemyLayer);
-        if (enemies.Length > 1 && hitCount == 3)
+        Collider2D[] enemies = Physics2D.OverlapCircleAll(center, 1f, enemyLayer);
+        if (enemies.Length >= 1 && hitCount >= 3)
         {
-            StartCoroutine(Lightingbot(1f));
+            Debug.Log("Bot returned " + enemies.Length + " colliders.");
+            StartCoroutine(DestroyBelowEnemies(2f));
+
         }
     }
 
-    IEnumerator Lightingbot(float botdelay)
-    {
-        if (!aud.isPlaying) // 如果当前没有音频正在播放
-        {
-            aud.PlayOneShot(sound);
-        }
-
-        DestroyBelowEnemies();
-        yield return new WaitForSeconds(botdelay); // 添加延迟
-        spriteRenderer.color = Color.white; // 再次变白
-        hitCount = 0; // 重置计数器
-    }
+    //IEnumerator Lightingbot(float botdelay)
+    //{
+        
+    //    yield return new WaitForSeconds(botdelay); // 添加延迟
+        
+        
+    //}
 }
