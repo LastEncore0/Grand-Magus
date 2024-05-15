@@ -1,3 +1,4 @@
+using ClearSky;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,9 +25,21 @@ public class HealthBar : MonoBehaviour
     void Update()
     {
         healthBarImage.fillAmount = currentHealth / maxHealth;
+        SimplePlayerController SimplePlayerController = FindObjectOfType<SimplePlayerController>();
+        GameOver GameOver = FindObjectOfType<GameOver>();
         if (currentHealth <= 0)
         {
-            SceneManager.LoadScene("EndScene");
+            if (SimplePlayerController != null)
+            {
+                SimplePlayerController.Die();
+            }
+            GameOver.StartFadeIn();
+            StartCoroutine(PlayerDie());
         }
+    }
+    IEnumerator PlayerDie()
+    {
+        yield return new WaitForSeconds(2.5f);
+        SceneManager.LoadScene("EndScene");
     }
 }

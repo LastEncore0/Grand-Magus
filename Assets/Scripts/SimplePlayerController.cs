@@ -160,13 +160,10 @@ namespace ClearSky
                     rb.AddForce(new Vector2(5f, 1f), ForceMode2D.Impulse);
             }
         }
-        void Die()
+        public void Die()
         {
-            if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                anim.SetTrigger("die");
-                alive = false;
-            }
+            anim.SetTrigger("hurt");
+            alive = false;
         }
         void Restart()
         {
