@@ -1,5 +1,6 @@
 ﻿using Unity.VisualScripting;
 using UnityEngine;
+using System.Collections;
 using static UnityEngine.Rendering.DebugUI;
 
 namespace ClearSky
@@ -27,6 +28,9 @@ namespace ClearSky
         public GameObject Wind;
         public float WindSpeed;
         public float upDistance;
+
+        public float fallBackForce = 5f;
+        public float fallDuration = 1f;
 
         public float maxhealty;
         public float healty;
@@ -164,7 +168,28 @@ namespace ClearSky
         {
             anim.SetTrigger("hurt");
             alive = false;
+            Rigidbody2D rb = GetComponent<Rigidbody2D>();
+            StartCoroutine(FallBackWhileHurt());
         }
+
+        private IEnumerator FallBackWhileHurt()
+        {
+            float elapsedTime = 0f;
+            float startAngle = transform.eulerAngles.z;
+            float endAngle = transform.localScale.x > 0 ? 90f : -90f; // 根据角色朝向决定最终角度
+
+            while (elapsedTime < fallDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                float zRotation = Mathf.LerpAngle(startAngle, endAngle, elapsedTime / fallDuration);
+                transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, zRotation);
+                yield return null;
+            }
+
+            // 确保最终角度准确
+            transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, endAngle);
+        }
+
         void Restart()
         {
             if (Input.GetKeyDown(KeyCode.Alpha0))
