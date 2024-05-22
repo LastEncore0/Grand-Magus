@@ -20,49 +20,54 @@ public class RandomEnter : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         Debug.Log("other.name " + other.name);
-        // 创建一个新的临时GameObject播放音效
-        GameObject tempAudioObject = new GameObject("TempAudio");
-        AudioSource tempAudioSource = tempAudioObject.AddComponent<AudioSource>();
-        tempAudioSource.clip = sound;
-        tempAudioSource.Play();
-
-        this.aud.PlayOneShot(this.sound);
-
-        explosion();
-
-        //隨機
-        chance = Random.Range(0.0f, 4.0f);
-        HealthBar healthBar = FindObjectOfType<HealthBar>();
         ManaBar manaBar = FindObjectOfType<ManaBar>();
-        Debug.Log("chance"+ chance);
-        if (chance < 1.0f)
+        HealthBar healthBar = FindObjectOfType<HealthBar>();
+        if (manaBar.gameruning)
         {
-            if (healthBar != null)
+            // 创建一个新的临时GameObject播放音效
+            GameObject tempAudioObject = new GameObject("TempAudio");
+            AudioSource tempAudioSource = tempAudioObject.AddComponent<AudioSource>();
+            tempAudioSource.clip = sound;
+            tempAudioSource.Play();
+
+            this.aud.PlayOneShot(this.sound);
+
+            explosion();
+
+            //隨機
+            chance = Random.Range(0.0f, 4.0f);
+            
+            Debug.Log("chance" + chance);
+            if (chance < 1.0f)
             {
-                healthBar.SetHealth(heal);
+                if (healthBar != null)
+                {
+                    healthBar.SetHealth(heal);
+                }
+            }
+            else if (chance >= 1.0f && chance < 2.0f)
+            {
+                if (manaBar != null)
+                {
+                    manaBar.SetMana(mana);
+                }
+            }
+            else if (chance >= 2.0f && chance < 3.0f)
+            {
+                if (healthBar != null)
+                {
+                    healthBar.SetHealth(-heal);
+                }
+            }
+            else if (chance >= 3.0f)
+            {
+                if (manaBar != null)
+                {
+                    manaBar.SetMana(-mana);
+                }
             }
         }
-        else if (chance >= 1.0f && chance < 2.0f)
-        {
-            if (manaBar != null)
-            {
-                manaBar.SetMana(mana);
-            }
-        }
-        else if (chance >= 2.0f && chance < 3.0f)
-        {
-            if (healthBar != null)
-            {
-                healthBar.SetHealth(-heal);
-            }
-        }
-        else if (chance >= 3.0f )
-        {
-            if (manaBar != null)
-            {
-                manaBar.SetMana(-mana);
-            }
-        }
+        
     }
 
     void explosion()

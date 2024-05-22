@@ -11,6 +11,7 @@ public class ManaBar : MonoBehaviour
     public float maxMana = 100f; // 最大魔法值
     public float currentMana; // 当前魔法值
     public float manarege;
+    public bool gameruning = true;
 
 
     // Start is called before the first frame update
@@ -26,11 +27,16 @@ public class ManaBar : MonoBehaviour
         ManaBarImage.fillAmount = currentMana / maxMana;
     }
 
+    public void StopMana()
+    {
+        gameruning = false;
+    }
+
     // Update is called once per frame
     void Update()
     {
         ManaBarImage.fillAmount = currentMana / maxMana;
-        if (currentMana < maxMana )
+        if (currentMana < maxMana && gameruning)
         {
             currentMana += manarege;
         }

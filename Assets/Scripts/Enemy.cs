@@ -35,6 +35,7 @@ public class Enemy : MonoBehaviour
         m_Anim = GetComponent<Animator>();
         current_healty = healty;
         GameRuler = FindObjectOfType<GameRuler>();
+        
         aud = GetComponent<AudioSource>();
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
         ice = transform.Find("ice").gameObject;
@@ -84,7 +85,8 @@ public class Enemy : MonoBehaviour
             }
             else // 如果在攻击范围内，则发动攻击
             {
-                if (canAttack)
+                ManaBar manaBar = FindObjectOfType<ManaBar>();
+                if (canAttack && manaBar.gameruning)
                 {
                     m_Anim.Play("Attack");
                     this.aud.PlayOneShot(this.attack_sound);

@@ -27,6 +27,7 @@ public class HealthBar : MonoBehaviour
         healthBarImage.fillAmount = currentHealth / maxHealth;
         SimplePlayerController SimplePlayerController = FindObjectOfType<SimplePlayerController>();
         GameOver GameOver = FindObjectOfType<GameOver>();
+        ManaBar manaBar = FindObjectOfType<ManaBar>();
         if (currentHealth <= 0)
         {
             if (SimplePlayerController != null)
@@ -34,6 +35,7 @@ public class HealthBar : MonoBehaviour
                 SimplePlayerController.Die();
             }
             GameOver.StartFadeIn();
+            manaBar.StopMana();
             StartCoroutine(PlayerDie());
         }
     }
