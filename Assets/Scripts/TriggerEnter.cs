@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 public class TriggerEnter : MonoBehaviour
@@ -17,24 +18,34 @@ public class TriggerEnter : MonoBehaviour
     public float damageRadius = 5.0f; // 伤害范围半径
     public LayerMask enemyLayer;
 
+    private ObjectPool explosionPool;
+    private ObjectPool greatfirePool;
+    private ObjectPool icePool;
+    private ObjectPool steamPool;
+
     void Start()
     {
         aud = GetComponent<AudioSource>();
 
+        explosionPool = new ObjectPool(explosionPrefab);
+        greatfirePool = new ObjectPool(greatfire);
+        icePool = new ObjectPool(ice);
+        steamPool = new ObjectPool(steam);
     }
 
-    public void ShootProjectile(GameObject projectilePrefab)
+    public void ShootProjectile(ObjectPool pool)
     {
         // 确定发射方向和速度
         Vector2 fireDirection = GetComponent<Rigidbody2D>().velocity.normalized;
         float speed = GetComponent<Rigidbody2D>().velocity.magnitude;
 
-        // 实例化新的发射物
-        projectilePrefab = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+        /// 从对象池中获取新的发射物
+        GameObject projectile = pool.GetObject();
+        projectile.transform.position = transform.position;
 
         // 获取新发射物的Rigidbody2D组件并设置速度和方向
-        Rigidbody2D newProjectileRb = projectilePrefab.GetComponent<Rigidbody2D>();
-        if (projectilePrefab != null)
+        Rigidbody2D newProjectileRb = projectile.GetComponent<Rigidbody2D>();
+        if (newProjectileRb != null)
         {
             // 将老发射物的速度和方向赋予新的发射物
             newProjectileRb.velocity = fireDirection * speed;
@@ -59,102 +70,111 @@ public class TriggerEnter : MonoBehaviour
         // 使用other.gameObject.name获取碰撞对象的名字
         string collidedObjectName = other.gameObject.name;
 
-
-        if (typenum == 0)
+        switch (typenum)
         {
-            if (collidedObjectName == "CFXR4 Bouncing Glows Bubble(Clone)")
-            {
-                // 获取物体的中心点
-                Vector3 center = GetComponent<Collider2D>().bounds.center;
+            case 0:
+                HandleType0(collidedObjectName, other);
+                break;
+            case 1:
+                HandleType1(collidedObjectName);
+                break;
+            case 2:
+                HandleType2(collidedObjectName, other);
+                break;
+            case 4:
+                HandleType4();
+                break;
+            case 5:
+                HandleType5(other);
+                break;
+        }
+        
+    }
 
-                // 在物体的中心实例化特效
-                Instantiate(steam, center, Quaternion.identity);
-
-                // 向上发射射线
-                
-                Debug.DrawRay(center, Vector2.up * 10, Color.red, 2f); // 绘制红色射线，持续2秒，方便可视化
-                // 检测射线是否碰撞到有Cloud脚本的对象
-                RaycastHit2D[] hits = Physics2D.RaycastAll(center, Vector2.up);
-                foreach (RaycastHit2D hit in hits)
-                {
-                    if (hit.collider != null && hit.collider.GetComponent<Cloud>() != null)
-                    {
-                        // 获取Cloud脚本并执行操作
-                        Cloud cloud = hit.collider.GetComponent<Cloud>();
-                        cloud.ChangeColor();
-                        break; // 如果你找到了云，可能就不需要检查其他的碰撞了
-                    }
-                }
-            }
-            else if (collidedObjectName != "Wizard")
+    void HandleType0(string collidedObjectName, Collider2D other)
+    {
+        if (collidedObjectName == "CFXR4 Bouncing Glows Bubble(Clone)")
+        {
+            Vector3 center = GetComponent<Collider2D>().bounds.center;
+            GameObject steamInstance = steamPool.GetObject();
+            steamInstance.transform.position = center;
+            RaycastHit2D[] hits = Physics2D.RaycastAll(center, Vector2.up);
+            foreach (RaycastHit2D hit in hits)
             {
-                Enemy Enemy = other.gameObject.GetComponent<Enemy>();
-                if (Enemy != null)
+                if (hit.collider != null && hit.collider.GetComponent<Cloud>() != null)
                 {
-                    Enemy.damaged(value);
-                }
-                else
-                {
-                    Destroy(other.gameObject);
+                    Cloud cloud = hit.collider.GetComponent<Cloud>();
+                    cloud.ChangeColor();
+                    break;
                 }
             }
         }
-        else if (typenum == 1)
+        else if (collidedObjectName != "Wizard")
         {
-            if (collidedObjectName != "CFXR Fire(Clone)")
+            Enemy enemy = other.gameObject.GetComponent<Enemy>();
+            if (enemy != null)
             {
-                HealthBar healthBar = FindObjectOfType<HealthBar>();
-                if (healthBar != null)
-                {
-                    healthBar.SetHealth(value);
-                }
-            }
-        }
-        else if (typenum == 2)
-        {
-            if (collidedObjectName == "CFXR Fire(Clone)")
-            {
-                ShootProjectile(greatfire);
-            }
-            else if (collidedObjectName == "CFXR4 Bouncing Glows Bubble(Clone)")
-            {
-                ShootProjectile(ice);
+                enemy.damaged(value);
             }
             else
             {
-                Vector3 pushDirection = (other.transform.position - transform.position).normalized; // 从投射物到目标的方向
+                Destroy(other.gameObject);
+            }
+        }
+    }
+
+    void HandleType1(string collidedObjectName)
+    {
+        if (collidedObjectName != "CFXR Fire(Clone)")
+        {
+            HealthBar healthBar = FindObjectOfType<HealthBar>();
+            if (healthBar != null)
+            {
+                healthBar.SetHealth(value);
+            }
+        }
+    }
+
+    void HandleType2(string collidedObjectName, Collider2D other)
+    {
+        switch (collidedObjectName)
+        {
+            case "CFXR Fire(Clone)":
+                ShootProjectile(greatfirePool);
+                break;
+
+            case "CFXR4 Bouncing Glows Bubble(Clone)":
+                ShootProjectile(icePool);
+                break;
+
+            default:
+                Vector3 pushDirection = (other.transform.position - transform.position).normalized;
                 other.transform.position += pushDirection * value;
-            }
+                break;
         }
-        else if (typenum == 4)
-        {
-            Vector2 center = new Vector2(transform.position.x, transform.position.y);
-            Collider2D[] enemies = Physics2D.OverlapCircleAll(center, 5.0f, enemyLayer);
-            Debug.Log("爆炸 " + center);
-            Debug.Log("enemies " + enemies);
-            // 遍历所有检测到的碰撞体
-            foreach (Collider2D enemyCollider in enemies)
-            {
-                Debug.Log("Collided name: " + enemyCollider.name);
-                // 尝试获取Enemy脚本
-                Enemy Enemy = enemyCollider.GetComponent<Enemy>();
+    }
 
-                if (Enemy != null)
-                {
-                    Enemy.damaged(value);
-                }
-
-            }
-        }
-        else if (typenum == 5)
+    void HandleType4()
+    {
+        Vector2 center = new Vector2(transform.position.x, transform.position.y);
+        Collider2D[] enemies = Physics2D.OverlapCircleAll(center, 5.0f, enemyLayer);
+        foreach (Collider2D enemyCollider in enemies)
         {
-            Enemy Enemy = other.gameObject.GetComponent<Enemy>();
-            if (Enemy != null)
+            Enemy enemy = enemyCollider.GetComponent<Enemy>();
+            if (enemy != null)
             {
-                Enemy.Forzen();
-                Enemy.Forzen_area();
+                enemy.damaged(value);
             }
         }
-        
+    }
+
+    void HandleType5(Collider2D other)
+    {
+        Enemy enemy = other.gameObject.GetComponent<Enemy>();
+        if (enemy != null)
+        {
+            enemy.Forzen();
+            enemy.Forzen_area();
+        }
     }
 }
