@@ -29,6 +29,10 @@ namespace ClearSky
         public float WindSpeed;
         public float upDistance;
 
+        private ObjectPool FirePool;
+        private ObjectPool WaterPool;
+        private ObjectPool WindPool;
+
         public float fallBackForce = 5f;
         public float fallDuration = 1f;
 
@@ -47,7 +51,10 @@ namespace ClearSky
             rb = GetComponent<Rigidbody2D>();
             anim = GetComponent<Animator>();
             startposition = transform.position;
-        }
+            FirePool = new ObjectPool(Fireball);
+            WaterPool = new ObjectPool(Waterball);
+            WindPool = new ObjectPool(Wind);
+    }
 
         private void Update()
         {
@@ -125,12 +132,33 @@ namespace ClearSky
 
             isJumping = false;
         }
+
+        public void ShootProjectile(ObjectPool pool,float speed)
+        {
+            anim.SetTrigger("attack");
+            // 确定发射方向和速度
+            Vector3 fireDirection = transform.localScale.x < 0 ? -transform.right : transform.right;
+
+            /// 从对象池中获取新的发射物
+            GameObject projectile = pool.GetObject();
+            projectile.transform.position = transform.position + fireDirection * 2.5f + Vector3.up * upDistance;
+
+            projectile.transform.rotation = transform.localScale.x < 0 ? Quaternion.Euler(0, 0, -90) : Quaternion.Euler(0, 0, 90);
+
+            // 获取新发射物的Rigidbody2D组件并设置速度和方向
+            Rigidbody2D newProjectileRb = projectile.GetComponent<Rigidbody2D>();
+            if (newProjectileRb != null)
+            {
+                // 将老发射物的速度和方向赋予新的发射物
+                newProjectileRb.velocity = fireDirection * speed;
+            }
+        }
         void Attack()
         {
             ManaBar ManaBar = FindObjectOfType<ManaBar>();
             if (Input.GetKeyDown(KeyCode.Q) && ManaBar.currentMana > fire_mana)
             {
-                ShootProjectile(Fireball, FireballSpeed);
+                ShootProjectile(FirePool, FireballSpeed);
                 if (ManaBar != null)
                 {
                     ManaBar.SetMana(fire_mana);
@@ -138,7 +166,7 @@ namespace ClearSky
             }
             if (Input.GetKeyDown(KeyCode.W) && ManaBar.currentMana > water_mana)
             {
-                ShootProjectile(Waterball, WaterSpeed);
+                ShootProjectile(WaterPool, WaterSpeed);
                 if (ManaBar != null)
                 {
                     ManaBar.SetMana(water_mana);
@@ -146,7 +174,7 @@ namespace ClearSky
             }
             if (Input.GetKeyDown(KeyCode.E) && ManaBar.currentMana > wind_mana)
             {
-                ShootProjectile(Wind, WindSpeed);
+                ShootProjectile(WindPool, WindSpeed);
                 if (ManaBar != null)
                 {
                     ManaBar.SetMana(wind_mana);
@@ -199,24 +227,5 @@ namespace ClearSky
             }
         }
 
-        public void ShootProjectile(GameObject projectilePrefab, float speed)
-        {
-            anim.SetTrigger("attack");
-            // 确定发射方向
-            Vector3 fireDirection = transform.localScale.x < 0 ? -transform.right : transform.right;
-
-            // 根据角色朝向确定旋转角度
-            Quaternion rotation = transform.localScale.x < 0 ? Quaternion.Euler(0, 0, -90) : Quaternion.Euler(0, 0, 90);
-
-            // 实例化发射物
-            GameObject projectileInstance = Instantiate(projectilePrefab, transform.position + fireDirection * 2.5f + Vector3.up * upDistance, rotation);
-
-            // 获取发射物的Rigidbody2D组件并添加速度
-            Rigidbody2D projectileRb = projectileInstance.GetComponent<Rigidbody2D>();
-            if (projectileRb != null)
-            {
-                projectileRb.velocity = fireDirection * speed;
-            }
-        }
     }
 }
