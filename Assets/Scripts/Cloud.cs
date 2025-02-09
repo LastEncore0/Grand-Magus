@@ -27,22 +27,23 @@ public class Cloud : MonoBehaviour
     {
         hitCount++;
         Debug.Log("ChangeColor");
-        // 根据触发次数改变颜色
+        // ヒット回数に応じて色を変更
         if (hitCount <= 3)
         {
-            float darkness = (4f - hitCount) / 4f; // 计算颜色的深度
-            spriteRenderer.color = new Color(darkness, darkness, darkness, 1); // 逐渐变黑
+            float darkness = (4f - hitCount) / 4f; // 色の暗さを計算
+            spriteRenderer.color = new Color(darkness, darkness, darkness, 1); // 徐々に黒くなる
         }
     }
 
     IEnumerator DestroyBelowEnemies(float damagedelay)
     {
-        yield return new WaitForSeconds(damagedelay); // 添加延迟
+        yield return new WaitForSeconds(damagedelay); // 遅延を追加
         Vector2 center = new Vector2(transform.position.x, transform.position.y - 10f);
-        if (!aud.isPlaying) // 如果当前没有音频正在播放
+        if (!aud.isPlaying) // 音声を再生
         {
             aud.PlayOneShot(sound);
         }
+        // 一定範囲内の敵を検出
         Collider2D[] enemies = Physics2D.OverlapCircleAll(center, 3.0f, enemyLayer);
         Debug.Log("OverlapCircle returned " + enemies.Length + " colliders.");
         Instantiate(thunder, center, Quaternion.identity);
@@ -51,10 +52,11 @@ public class Cloud : MonoBehaviour
             lighting.SetActive(true);
             StartCoroutine(DeactivateLightingAfterDelay(1f));
         }
+        // 雷エフェクトを指定の位置に生成
         GameObject effect = Instantiate(thunder, center, Quaternion.identity);
         Debug.Log(effect != null ? "Effect created successfully" : "Effect creation failed");
-        
-        // 遍历所有检测到的碰撞体
+
+        // 範囲内の敵を殺す
         foreach (Collider2D enemyCollider in enemies)
         {
             Enemy Enemy = enemyCollider.GetComponent<Enemy>();
@@ -64,9 +66,9 @@ public class Cloud : MonoBehaviour
                 Enemy.damaged(damage_value);
             }
         }
-        spriteRenderer.color = Color.white; // 再次变白
-        hitCount = 0; // 重置计数器
-        
+        spriteRenderer.color = Color.white; // 曇をリセット
+        hitCount = 0; // カウンターをリセット
+
     }
 
 

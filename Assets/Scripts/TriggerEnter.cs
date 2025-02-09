@@ -67,9 +67,9 @@ public class TriggerEnter : MonoBehaviour
 
 
 
-        // 使用other.gameObject.name获取碰撞对象的名字
+        // 衝突対象の名前を取得
         string collidedObjectName = other.gameObject.name;
-
+        // タイプに応じた処理を呼び出し
         switch (typenum)
         {
             case 0:
